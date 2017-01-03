@@ -1,3 +1,8 @@
+/**
+ * 添加坐标轴，仅调试用。
+ * @param  {} scene
+ * @param  {} group
+ */
 export default function drawCoords(scene,group) {
     var xmat = new THREE.LineBasicMaterial({color: 0xff0000});
     var ymat = new THREE.LineBasicMaterial({color: 0x00ff00});

@@ -1,11 +1,21 @@
+/**
+ * 补间动画
+ */
 import global from './global'
-import {objects,group,choosedGroup,choosedObjects} from './3dScene'
+import {group,choosedGroup} from './3dScene'
 import {pList,drawNum} from './number'
 var states ={sphere: [], random: [], init: []}
-window.states=states
+var STATE_SPHERE=0,STATE_RANDOM=1,STATE_INIT=2;
+var CURR_STATE=STATE_INIT;
 var animates=[]
 var isPlaying=false;
+var luckyManShowing=false;
+var currentLuckyMan;
+window.states=states
+window.global=global
+// window.currentLuckyMan=currentLuckyMan
 function updateAnimate(){
+    console.log(luckyManShowing)
     if(isPlaying) return;
     else if(animates.length==0){
         return
@@ -14,6 +24,23 @@ function updateAnimate(){
         var nextAnimate=animates.shift();
         isPlaying=true;
         nextAnimate.animateFunc(...nextAnimate.args);
+    }
+    clearLuckyMan();
+}
+var clearLuckyMan=function(){
+    if(luckyManShowing){
+        console.log(currentLuckyMan)
+        for(var user of currentLuckyMan){
+            var object=global.userMap[user.rtx].object
+            var index=global.userMap[user.rtx].index
+            // object.material.opacity=0;
+            choosedGroup.remove(object)
+            group.add(object)
+            object.scale.set(1,1,1)
+            object.position.copy(states.sphere[index].position)
+            object.rotation.copy(states.sphere[index].rotation)
+        }
+        luckyManShowing=false;
     }
 }
 function buildAnimate(animateFunc,args){
@@ -33,17 +60,19 @@ var updateInit=function(){
     states.init=[]
     var object = new THREE.Object3D();
     object.scale.set(0.01,0.01,0.01)
-    for(var i=1;i<=global.peopleCnt;i++){
+    for(var i=0;i<global.users.length;i++){
         states.init.push(object);
     }
 }
 var updateSphere=function(){
     states.sphere=[]
     var vector = new THREE.Vector3();
-    for (var i = 1; i <= objects.length; i++) {
-        var k = 1 - (2 * i - 1) / objects.length;
+    for (var i = 0; i < global.users.length; i++) {
+        var k = 1 - (2 * i + 1) / global.users.length;
         var phi = Math.acos(k);
-        var theta = Math.sqrt(objects.length * Math.PI) * phi;
+        var theta = Math.sqrt(global.users.length * Math.PI) * phi;
+        global.users[i].phi=phi;
+        global.users[i].theta=theta;
         var object = new THREE.Object3D();
         object.position.x = 200 * Math.cos(theta) * Math.sin(phi);
         object.position.y = 200 * Math.sin(theta) * Math.sin(phi);
@@ -55,7 +84,7 @@ var updateSphere=function(){
 }
 var updateRandom=function(){
     states.random=[]
-    for(var i=0;i<objects.length;i++){
+    for(var i=0;i<global.users.length;i++){
         var object = new THREE.Object3D();
         object.position.x = Math.random() * 1000 - 500;
         object.position.y = Math.random() * 1000 - 500;
@@ -68,16 +97,19 @@ function updateStates(){
     updateRandom();
     updateInit();
 }
-updateStates();
 var nullFunc=function(){};
 function toBall(){
-    for (var i = 0; i < objects.length; i++) {
-        var position2sphere=new TWEEN.Tween(objects[i].position)
+    if(CURR_STATE==STATE_SPHERE){
+        onAnimateComplete();
+        return;
+    }
+    for (var i = 0; i < global.users.length; i++) {
+        var position2sphere=new TWEEN.Tween(global.users[i].object.position)
                 .to(states.sphere[i].position, 5000)
                 .easing(TWEEN.Easing.Exponential.InOut)
                 .onComplete(i==0?onAnimateComplete:nullFunc)
                 .start();
-        var rotation2sphere=new TWEEN.Tween(objects[i].rotation)
+        var rotation2sphere=new TWEEN.Tween(global.users[i].object.rotation)
                 .to(
                         {
                             x: states.sphere[i].rotation.x,
@@ -87,7 +119,7 @@ function toBall(){
                         5000)
                 .easing(TWEEN.Easing.Exponential.InOut)
                 .start();
-        var scaleBall=new TWEEN.Tween(objects[i].scale)
+        var scaleBall=new TWEEN.Tween(global.users[i].object.scale)
                 .to(
                         {
                             x: 1,
@@ -98,15 +130,17 @@ function toBall(){
                 .easing(TWEEN.Easing.Exponential.InOut)
                 .start();
     }
+    CURR_STATE=STATE_SPHERE;
 }
 function toInit(){
-    for (var i = 0; i < objects.length; i++) {
-        var position2sphere=new TWEEN.Tween(objects[i].position)
+    if(CURR_STATE==STATE_INIT) return;
+    for (var i = 0; i < global.users.length; i++) {
+        var position2sphere=new TWEEN.Tween(global.users[i].object.position)
                 .to({x:0,y:0,z:0}, 5000)
                 .easing(TWEEN.Easing.Exponential.InOut)
                 onComplete(i==0?onAnimateComplete:nullFunc)
                 .start();
-        var rotation2sphere=new TWEEN.Tween(objects[i].rotation)
+        var rotation2sphere=new TWEEN.Tween(global.users[i].object.rotation)
                 .to(
                         {
                             x: 0,
@@ -116,7 +150,7 @@ function toInit(){
                         5000)
                 .easing(TWEEN.Easing.Exponential.InOut)
                 .start();
-        var scaleBall=new TWEEN.Tween(objects[i].scale)
+        var scaleBall=new TWEEN.Tween(global.users[i].object.scale)
                 .to(
                         {
                             x: 0.001,
@@ -127,12 +161,13 @@ function toInit(){
                 .easing(TWEEN.Easing.Exponential.InOut)
                 .start();
     }
+    CURR_STATE=STATE_INIT;
 }
 
 function toRandom(time,isDelay){
     updateRandom();
-    for (var i = 0; i < objects.length; i++) {
-        var positionBoom=new TWEEN.Tween(objects[i].position)
+    for (var i = 0; i < global.users.length; i++) {
+        var positionBoom=new TWEEN.Tween(global.users[i].object.position)
                 .to(states.random[i].position, time?time:3000)
                 .easing(TWEEN.Easing.Exponential.InOut)
                 .onComplete(i==0?function(){
@@ -145,7 +180,7 @@ function toRandom(time,isDelay){
                 }:nullFunc)
                 .delay(isDelay?Math.random()*1000:0)
                 .start();
-        var scaleBoom=new TWEEN.Tween(objects[i].scale)
+        var scaleBoom=new TWEEN.Tween(global.users[i].object.scale)
                 .to(
                         {
                             x: 1,
@@ -157,9 +192,10 @@ function toRandom(time,isDelay){
                 .delay(isDelay?Math.random()*1000:0)
                 .start();
     }
+    CURR_STATE=STATE_RANDOM;
 }
 function count(){
-    for(var i=10;i>=0;i--){
+    for(var i=3;i>=0;i--){
         animates.push(buildAnimate(toRandom,[1000]))
         animates.push(buildAnimate(toNum,[i]))
     }
@@ -169,13 +205,13 @@ function count(){
  * 照片拼出数字，0~10
  */
 function toNum(num){
-    drawNum(num)
+    drawNum(num,global.users.length)
     new TWEEN.Tween(group.rotation)
             .to({x:0,y:0,z:0},2000)
             .easing(TWEEN.Easing.Quintic.InOut)
             .start();
-    for (var i = 0; i < objects.length; i++) {
-        new TWEEN.Tween(objects[i].position)
+    for (var i = 0; i < global.users.length; i++) {
+        new TWEEN.Tween(global.users[i].object.position)
                 .to({
                         x:pList[i].x,
                         y:pList[i].y,
@@ -184,7 +220,7 @@ function toNum(num){
                 .easing(TWEEN.Easing.Exponential.InOut)
                 .onComplete(i==0?onAnimateComplete:nullFunc)
                 .start();
-        new TWEEN.Tween(objects[i].scale)
+        new TWEEN.Tween(global.users[i].object.scale)
                 .to(
                         {
                             x: 0.15,
@@ -194,7 +230,7 @@ function toNum(num){
                         2000)
                 .easing(TWEEN.Easing.Exponential.InOut)
                 .start();
-        new TWEEN.Tween(objects[i].rotation)
+        new TWEEN.Tween(global.users[i].object.rotation)
                 .to(
                         {
                             x: 0,
@@ -226,11 +262,10 @@ function rotateAroundWorldAxis(object, axis, radians) {
     object.matrix = rotWorldMatrix;
     object.rotation.setFromRotationMatrix(object.matrix);
 }
-var rotateToIndex=function(index){
-    var k = 1 - (2 * index + 1) / global.peopleCnt;
-    var phi = Math.acos(k);
-    var theta = Math.sqrt(global.peopleCnt * Math.PI) * phi;
+var rotateToUser=function(rtx){
     var object=new THREE.Object3D();
+    var theta=global.userMap[rtx].theta;
+    var phi=global.userMap[rtx].phi;
     object.rotateZ(-theta);
     object.updateMatrix();
     var yAxis=new THREE.Vector3(0,1,0);
@@ -245,8 +280,9 @@ var rotateToIndex=function(index){
             .onComplete(onAnimateComplete)
             .start();
 }
-var showIndex=function(index){
-    var object=objects[index];
+var showUser=function(rtx){
+    console.log(rtx)
+    var object=global.userMap[rtx].object;
     object.updateMatrixWorld();
     object.material.transparent=true
     var vector = new THREE.Vector3();
@@ -255,45 +291,111 @@ var showIndex=function(index){
     object.rotation.set(0,0,0)
     group.remove(object)
     choosedGroup.add(object)
-    objects.splice(index,1);
-    choosedObjects.push(object)
     new TWEEN.Tween(object.position)
             .to({
-                x:-200,y:200,z:200
+                x:0,y:200,z:200
                 }, 2000)
             .easing(TWEEN.Easing.Exponential.InOut)
             .start();
     new TWEEN.Tween(object.scale)
             .to({
-                x:3,y:3,z:3
+                x:10,y:10,z:10
                 }, 2000)
             .easing(TWEEN.Easing.Exponential.InOut)
-            .chain(new TWEEN.Tween(object.material)
-                .to({
-                    opacity:0
-                    }, 2000)
-                .easing(TWEEN.Easing.Exponential.InOut)
-                .onComplete(function(){
-                    onAnimateComplete();
-                })
-            )
+            .onComplete(function(){
+                onAnimateComplete();
+                luckyManShowing=true;
+                currentLuckyMan=[global.userMap[rtx]]
+            })
+            // .chain(new TWEEN.Tween(object.material)
+            //     .to({
+            //         opacity:0
+            //         }, 2000)
+            //     .easing(TWEEN.Easing.Exponential.InOut)
+            //     .onComplete(function(){
+            //         // group.add(object)
+            //         // choosedGroup.remove(object)
+            //         onAnimateComplete();
+            //     })
+            // )
             .start();
     updateStates();
 }
+var showUsers=function(luckyMan){
+    var num=luckyMan.length;
+    var width=1;
+    while(width*width<num) width++;
+    var scale=20/width;
+    var time=8000/num;
+    var step=400/width;
+    var showMan=function(i){
+        if(i==num){
+            return;
+        }
+        var x=i%width;
+        var y=(i-x)/width;
+        var object=global.userMap[luckyMan[i].rtx].object;
+        object.updateMatrixWorld();
+        object.material.transparent=true
+        var vector = new THREE.Vector3();
+        vector.setFromMatrixPosition( object.matrixWorld );
+        object.position.copy(vector)
+        object.rotation.set(0,0,0)
+        group.remove(object)
+        choosedGroup.add(object)
+        new TWEEN.Tween(object.position)
+            .to({
+                x:-200+x*step,y:200-y*step,z:200
+                }, time)
+            .easing(TWEEN.Easing.Exponential.InOut)
+            .start();
+        new TWEEN.Tween(object.scale)
+            .to({
+                x:scale,y:scale,z:scale
+                }, time)
+            .easing(TWEEN.Easing.Exponential.InOut)
+            .onComplete(function(){
+                showMan(i+1)
+            })
+            .start();
+    }
+    setTimeout(showMan,1000,0)
+    new TWEEN.Tween(group.rotation)
+        .to({
+            x:25*Math.PI,
+            y:25*Math.PI,
+            z:25*Math.PI
+        },12000)
+        .easing(TWEEN.Easing.Quintic.InOut)
+        .onComplete(function(){
+            luckyManShowing=true;
+            currentLuckyMan=luckyMan;
+            window.currentLuckyMan=luckyMan;
+            onAnimateComplete();
+        })
+        .start();
 
-var chooseOne=function(){
-    animates.push(buildAnimate(toRandom,[1000,true]));
+}
+var chooseUser=function(rtx){
+    // animates.push(buildAnimate(toRandom,[1000,true]));
     animates.push(buildAnimate(toBall))
-    var index=Math.floor(Math.random()*objects.length);
-    animates.push(buildAnimate(rotateToIndex,[index]))
-    animates.push(buildAnimate(showIndex,[index]))
+    animates.push(buildAnimate(rotateToUser,[rtx]))
+    animates.push(buildAnimate(showUser,[rtx]))
+    updateAnimate();
+}
+var chooseUsers=function(luckyMan){
+    if(luckyMan.length==1){
+        chooseUser(luckyMan[0].rtx)
+    }
+    else{
+        animates.push(buildAnimate(toBall))
+        animates.push(buildAnimate(showUsers,[luckyMan]))
+        updateAnimate();
+    }
 }
 function play(){
-    animates.push(buildAnimate(toRandom,[2000,true]));
     count();
-    chooseOne()
-    chooseOne()
-    chooseOne()
+    animates.push(buildAnimate(toBall))
     updateAnimate()
 }
-export {toRandom,toBall,rotate,count,play,updateStates};
+export {toRandom,toBall,rotate,count,play,updateStates,chooseUsers,clearLuckyMan};

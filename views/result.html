@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>即通产品部年会</title>
+	<link rel="stylesheet" type="text/css" href="./stylesheets/style.css">
+</head>
+<body onselectstart="return false" onselect="document.selection.empty()">
+<div class="wrap">
+	<div id="page_index" class="pg-index-r">
+		<div class="header"></div>
+	</div>
+	<div class="tablePage">
+		<div class="pageSearch">
+			<div class="col3">
+				<select class="form-control" id="selLevel">
+					<option value="-1">全部</option>
+					<option value="0">特等奖</option>
+					<option value="1">一等奖</option>
+					<option value="2">二等奖</option>
+					<option value="3">三等奖</option>
+					<option value="4">四等奖</option>
+					<option value="5">五等奖</option>
+					<option value="6">六等奖</option>
+					<option value="7">七等奖</option>
+					<option value="8">八等奖</option>
+					<option value="9">阳光普照奖</option>
+				</select>
+			</div>
+			<div class="col7">
+				<button id="setSum" class="btnextend btn-danger">阳光普照</button><button id="search" class="btnextend btn-primary">查询</button><button id="export" class="btnextend btn-yellow">导出</button>
+			</div>
+		</div>
+		<table class="bordered" id="awardsTab">
+			<thead>
+				<tr>
+					<th width="10%">序号</th>
+					<th width="25%">中奖同学</th>
+					<th width="25%">奖品</th>
+					<th width="20%">奖品等级</th>
+					<th width="20%">中奖时间</th>
+				</tr>
+			</thead>
+			<tbody>
+				
+			</tbody>
+		</table>
+		<div class="pagging">
+			<div id="kkpager"></div>
+		</div>
+	</div>
+
+</div>
+<script type="text/javascript" src="./javascripts/jquery.min.js"></script>
+<script type="text/javascript" src="./src/layer/layer.js"></script>
+<script type="text/javascript" src="./javascripts/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="./javascripts/dataTables.bootstrap.js"></script>
+<script type="text/javascript">
+(function(win) {
+	//界面初始化
+	var pageInit=function(){
+		pageBind();
+	};
+	var _OTABLE;
+	var levelList={
+		"0":"特等奖",
+		"1":"一等奖",
+		"2":"二等奖",
+		"3":"三等奖",
+		"4":"四等奖",
+		"5":"五等奖",
+		"6":"六等奖",
+		"7":"七等奖",
+		"8":"八等奖",
+		"9":"阳光普照奖"
+	};
+
+	//界面绑定
+	var pageBind=function(){
+		$("#export").on("click",function(){
+			//获取分页数据
+			var levelId=levelId=$("#selLevel").val();
+			location.href="./result/export?level="+levelId+"&pageStart=0&pageSize=999";
+		});
+		_OTABLE = $("#awardsTab").dataTable({
+			"oLanguage": { // 汉化  
+				"sProcessing": "正在加载数据...",
+				"sZeroRecords": "没有您要搜索的内容",
+				"sInfo": "从_START_ 到 _END_ 条记录——总记录数为 _TOTAL_ 条",
+				"sInfoEmpty": "记录数为0",
+				"sLengthMenu": "每页显示 _MENU_ 条记录",
+				"sInfoFiltered": "(全部记录数 _MAX_  条)",
+				"sInfoPostFix": "",
+				"sUrl": "",
+				"oPaginate": {
+					"sFirst": "第一页",
+					"sPrevious": " 上一页 ",
+					"sNext": " 下一页 ",
+					"sLast": " 最后一页 "
+				}
+			},
+			"aoColumnDefs": [{
+				sDefaultContent: '',
+				aTargets: ['_all']
+			}],
+			"aoColumns": [{
+				sClass: 'center'
+			}, {
+				mData: "rtx",
+				mRender:function(data,type,full){
+					return data+"("+full.name+")";
+				}
+			}, {
+				mData: "priname",
+			}, {
+				mData: "level",
+				mRender:function(data,type,full){
+					return levelList[data];
+				}
+			}, {
+				mData: "havetime",
+				mRender:function(data,type,full){
+					return dateFormat(new Date(data),"yyyy-MM-dd hh:mm");
+				}
+			}],
+			"aLengthMenu": [
+				[20, 50, 100, 200, 500, 1000],
+				[20, 50, 100, 200, 500, 1000]
+			],
+			oClasses: {
+				"sLengthSelect": "form-control input-xsmall input-inline",
+			},
+			fnDrawCallback: function(oSettings) {
+				//增加序列号
+				for (var i = 0, iLen = oSettings.aiDisplay.length; i < iLen; i++) {
+					$('td:eq(0)', oSettings.aoData[oSettings.aiDisplay[i]].nTr).html(i + 1);
+				}
+			},
+			'bStateSave': false, //这个必须设置，这样就可以在删除返回时，保留在同一页上
+			"dom": "<'table-scrollable't><'row'<'col-md-4 col-sm-12'l><'col-md-8 col-sm-12'p>r>",
+			"bJQueryUI": true, //是否使用jquery ui themeroller的风格
+			"bPaginate": true, // 分页按钮  
+			"bFilter": true, // 搜索栏  
+			"iDisplayLength": 20, // 每页显示行数
+			"iDisplayStart": 0,
+			"bSort": false, // 排序
+			"bLengthChange": true, // 每行显示记录数  
+			"bInfo": false, // Showing 1 to 10 of 23 entries 总记录数没也显示多少等信息  
+			"pagingType": "full_numbers",
+			"bServerSide": true,
+			"processing": true,
+			"bProcessing": true, //当datatable获取数据时候是否显示正在处理提示信息。
+			"sAjaxSource": "./result/getlist" + "?rand=" + Math.random(), //服务地址
+			"fnServerData": function(sSource, aoData, fnCallback) {
+				var pageSize = aoData.filter(function(item) {
+						return item.name === "iDisplayLength";
+					})[0].value,
+					pageStart = aoData.filter(function(item) {
+						return item.name === "iDisplayStart";
+					})[0].value,
+					levelId=$("#selLevel").val(),
+					data = {
+						level:levelId,
+						pageStart: pageStart,
+						pageSize: pageSize
+					};
+				var cb = function(resp) {
+					showData(resp, fnCallback);
+				};
+				postData(sSource, data, cb);
+			}
+		});
+		//创建完才出现的下拉框绑定	
+		$("[name='sample_1_length']").on('change', function() {
+			_OTABLE.fnSettings().iInitDisplayStart = 0;
+		});
+		//查询
+		$("#search").on("click",function(){
+			_OTABLE.fnDraw(); //跳转到第一页，会自动激发retrieveData
+		});
+		$("#setSum").on("click",function(){
+			setSumFunc(); //设置为阳光普照
+		});
+
+	};
+
+	//绑定数据
+	var showData = function(resp, callBack) {
+		var resultData = {
+			iTotalRecords: 0, //总数
+			iTotalDisplayRecords: 0,
+			aaData: []
+		}
+		if (resp.recode == 0) {
+			resultData = {
+				iTotalRecords: resp.content.total, //总数
+				iTotalDisplayRecords: resp.content.total,
+				aaData: resp.content.list
+			};
+		}
+		callBack(resultData);
+	};
+
+	var setSumFunc=function(){
+		layer.confirm('确认将剩下的同学赐予【阳光普照奖】？', {
+			btn: ['是的', '拒绝'] //按钮
+		}, function(index) {
+			postData("./result/sunprize", null, function(result) {
+				if(result.recode ==0){
+					myAlert("操作成功",function(){
+						window.location.reload();
+					});
+					//layer.close(index);	
+				}
+			});
+		});
+	};
+
+	var postData = function(url, prams, callBack) {
+		//执行操作
+		$.ajax({
+			url: url,
+			type: "GET",
+			data: prams,
+			timeout: 600000, //超时10分钟
+			success: function(result) {
+				if (result.recode == 500 && result.recode != 0) {
+					myAlert("系统繁忙");
+				} else if (result.recode == -1) {
+					myAlert("操作失败！" + result.content);
+					return;
+				} else {
+					callBack(result);
+				}
+			},
+			error: function() {
+				myAlert("系统繁忙");
+			}
+		});
+	};
+
+
+	var dateFormat = function(date, fmt) {
+		var o = {
+			"M+": date.getMonth() + 1, //月份 
+			"d+": date.getDate(), //日 
+			"h+": date.getHours(), //小时 
+			"m+": date.getMinutes(), //分 
+			"s+": date.getSeconds(), //秒 
+			"q+": Math.floor((date.getMonth() + 3) / 3), //季度 
+			"S": date.getMilliseconds() //毫秒 
+		};
+		if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (date.getFullYear() + "").substr(4 - RegExp.$1.length));
+		for (var k in o)
+			if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+		return fmt;
+	}
+
+	var myAlert = function(msg) {
+		layer.alert(msg);
+	};
+
+	var page = {
+		init: pageInit
+	};
+	
+	win.page=page;
+
+}(window))
+$(function(){
+	window.page.init();
+})
+</script>
+</body>
+</html>

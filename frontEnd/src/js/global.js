@@ -1,12 +1,10 @@
-var imgs=[];
-for(var i=0;i<200;i++){
-    var cnt=Math.floor(Math.random()*112+2);
-    imgs.push('http://sqimg.qq.com/qq_product_operations/mma/javanli_test/rolls/imgs/pic' + cnt + '.jpg');
-}
+/**
+ * 全局变量与配置属性
+ */
 export default {
-    coordsVisible:false,
-    outlineVisible:true,
-    imgs:imgs,
-    peopleCnt:imgs.length,
-    maps:[]
+    coordsVisible:false,//显示坐标轴
+    outlineVisible:false,//显示边框
+    serverPath:`.`,
+    users:[],
+    userMap:{}
 }

@@ -86,7 +86,7 @@ module.exports = (require, ctx) => {
       }),
       new CopyWebpackPlugin([
         { from: 'src/lib', to: 'lib' },
-        {from:'src/img',to:'img'}
+        {from: 'src/img',to:'img'}
       ]),
       isProduction ? new webpack.optimize.UglifyJsPlugin({ // js ugllify
         compress: {

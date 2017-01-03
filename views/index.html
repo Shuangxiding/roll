@@ -1,0 +1,354 @@
+<!doctype html>
+<head>
+<meta charset="utf-8">
+<title>即通产品部年会</title>
+<link rel="stylesheet" type="text/css" href="./stylesheets/style.css">
+<style id="s">
+    canvas {
+        filter: invert(100%);
+        -webkit-filter: invert(100%);
+        -moz-filter: invert(100%);
+        -o-filter: invert(100%);
+        -ms-filter: invert(100%);
+    }
+</style>
+</head>
+<body>
+	<div id="page_index" class="pg-index">
+		<div class="header">
+		</div>
+		<div class="mark">抽奖啦</div>
+		<div class="body">
+			<ul class="list" id="menubtns">
+				<li>
+					<a href="javascript:;" level="0" class="btn">
+						<span>特等奖</span>
+					</a>
+				</li>
+				<li>
+					<a href="javascript:;" level="1" class="btn btn1">
+						<span>一等奖</span>
+					</a>
+				</li>
+				<!--disabled-->
+				<li>
+					<a href="javascript:;" level="2" class="btn btn2">
+						<span>二等奖</span>
+					</a>
+				</li>
+				<li>
+					<a href="javascript:;" level="3" class="btn btn3">
+						<span>三等奖</span>
+					</a>
+				</li>
+				<li>
+					<a href="javascript:;" level="4" class="btn btn4">
+						<span>四等奖</span>
+					</a>
+				</li>
+				<li>
+					<a href="javascript:;" level="5" class="btn btn5">
+						<span>五等奖</span>
+					</a>
+				</li>
+				<li>
+					<a href="javascript:;" level="6" class="btn btn6">
+						<span>六等奖</span>
+					</a>
+				</li>
+				<li>
+					<a href="javascript:;" level="7" class="btn btn7">
+						<span>七等奖</span>
+					</a>
+				</li>
+				<li>
+					<a href="javascript:;" level="8" class="btn btn8">
+						<span>八等奖</span>
+					</a>
+				</li>
+			</ul>
+			<div class="result">
+				<a href="./result" target="_blank" class="link">中奖名单汇总</a>
+			</div>
+		</div>
+	</div>
+	<div id="page_lottery" class="pg-result" style="display:none;">
+		<h2 class="title" id="title_lottery"></h2>
+		<div class="box">
+			<div class="prize-show">
+				<h3 class="title" id="level_name">特等奖</h3>
+				<!-- 其他奖项加上 title1~title7 -->
+				<div class="img">
+					<ul class="pics" id="list_goods"></ul>
+				</div>
+				<p><span id="goodsName"></span><span id="goodsNum"></span></p>
+			</div>
+			<div class="result" id="users_lottery"></div>
+		</div>
+		<div class="footer">
+			<a href="javascript:;" id="btn_start" class="btn primary btn-md">
+				<span>开始</span>
+			</a>
+			<a href="javascript:;" id="btn_back" class="btn btn-back">
+				<span>返回</span>
+			</a>
+		</div>
+	</div>
+<canvas id="c" style="left: 0; top: 0; margin: 0; position: fixed; color: #f00; z-index:-1; " height="578" width="655"></canvas>
+<script type="text/javascript" src="./javascripts/jquery.min.js"></script>
+<!-- <script type="text/javascript" src="./javascripts/snow.js"></script> -->
+<script type="text/javascript" src="./src/layer/layer.js"></script>
+<script type="text/javascript" src="./javascripts/dat.gui.min.js"></script>
+<script type="text/javascript" src="./javascripts/index.js"></script>
+<script type="text/javascript">
+	(function(win) {
+		var CURR_PRIZE; //当前奖品信息
+		var CURR_LEVEL; //当前中奖等级
+		var CURR_LEFT_NUM; //当前奖品剩余数量
+		var CURR_DATA; //当前的抽奖数据
+		var CURR_NUM; //当前抽奖的个数
+		var IS_LOADING = 0; //是否在抽奖状态
+		var T_CLOCK; //刷名字的动画
+		var pageInit = function() {
+			getAllLevelLeft();
+			pageBind();
+		};
+
+
+		/**
+		 * [页面事件绑定]
+		 * @return {[type]} [description]
+		 */
+		var pageBind = function() {
+			$("#menubtns .btn").on("click", function() {
+				var level = $(this).attr('level');
+				CURR_LEVEL = level;
+				$(".bg").hide();
+				goPageLottery(level);
+				showPrize(level);
+			});
+			$("#btn_back").on("click", function() {
+				if (IS_LOADING == 1) {
+					return;
+				}
+				$('#page_lottery').hide();
+				$(".bg").show();
+				$('#page_index').show();
+				getAllLevelLeft();
+				$('.bg').removeClass('result');
+			});
+			$("#btn_start").on("click", function() {
+				startLottery($(this));
+			});
+
+		};
+
+
+		/**
+		 * [获取所有的奖项的剩余数量，当剩余数量为0时，设置按钮的状态]
+		 * @return {[type]} [description]
+		 */
+		var getAllLevelLeft = function() {
+			getJSON('./index/get_level_left', function(json) {
+				var map = json.content;
+				$('#menubtns .btn').each(function() {
+					var level = $(this).attr('level');
+					if (map[level] == '0') {
+						$(this).addClass('disabled');
+					}
+				});
+			});
+		};
+
+		// 跳到抽奖页面
+		var goPageLottery = function(text) {
+			for (var i = 0; i <= 8; i++) {
+				$('#level_name').removeClass('title' + i);
+			}
+			$('#level_name').html(text).addClass('title' + CURR_LEVEL);
+			$('#goodsName').html('');
+			$('#goodsNum').html('');
+			$('#list_goods').html('');
+			$('#users_lottery').html('');
+			$('#page_lottery').show();
+			$('#page_index').hide();
+			$('.bg').addClass('result');
+			$('#title_lottery').addClass('start');
+		};
+
+		/**
+		 * [展示奖品]
+		 * @param  {[type]} level [description]
+		 * @return {[type]}       [description]
+		 */
+		var showPrize = function(level) {
+			CURR_PRIZE = null;
+			CURR_LEFT_NUM = 0;
+			getJSON('./index/get_prize_info?level=' + level, function(json) {
+				var data = json.content;
+				var nowNum = data.num - data.usedNum;
+				var str = '<div class="inner"><img src="./images/prize/' + data.name + '.jpg" alt=""></div>';
+				$('#list_goods').html(str);
+				$('#goodsName').text(data.cnname);
+				CURR_PRIZE = data;
+				CURR_LEFT_NUM = nowNum;
+				CURR_NUM = data.prelimit;
+				showLotteryStatus();
+			});
+		};
+
+		//展示抽奖状态
+		var showLotteryStatus = function() {
+			$("#goodsNum").text("（" + CURR_LEFT_NUM + "）");
+			$("#btn_start").removeClass("stop");
+			if (CURR_LEFT_NUM == 0) {
+				$('#btn_start').addClass("showResult");
+				$('#btn_start span').html('中奖名单');
+			} else {
+				$('#btn_start').removeClass("showResult");
+				$('#btn_start span').html('开始');
+			}
+		};
+
+		// 开始抽奖
+		var startLottery = function(obj) {
+			if (obj.hasClass("stop")) {
+				stopLotteryEffect(obj); //停止动画，抽奖结束
+				return;
+			}
+			if ($('#btn_start').attr('disabled') == 'disabled') {
+				return;
+			}
+			if (CURR_LEFT_NUM == 0 && obj.hasClass("showResult")) {
+				//当前奖品状已经抽完了，展示抽奖名单
+				showResult();
+				return;
+			}
+			//如果剩余的奖品数大于当前抽奖的个数，则选择抽奖个数，反之则使用当前抽奖个数
+			var num = CURR_LEFT_NUM > CURR_NUM ? CURR_NUM : CURR_LEFT_NUM;
+			if (num == 0) {
+				myAlert('该奖品抽完啦！');
+				return;
+			}
+			$('#btn_start').attr('disabled', 'disabled');
+			IS_LOADING = 1;
+			getJSON('./index/start_Lottery?priid=' + CURR_PRIZE.id, function(json) {
+				CURR_DATA = json.content;
+				setTimeout(function(){
+					$('#btn_start').removeAttr('disabled').addClass("stop").html("<span>停止</span>");	
+				}, 500);
+				CURR_LEFT_NUM = CURR_LEFT_NUM - num;
+				CURR_NUM = num;
+				startLotteryEffect(); // 抽奖动画
+			});
+		};
+
+		/**
+		 * [展示获奖名单]
+		 * @return {[type]} [description]
+		 */
+		var showResult = function() {
+			getJSON('./index/show_result?level=' + CURR_LEVEL, function(json) {
+				var awards = json.content;
+				var str = '<ul class="list">';
+				for (var i = 0; i < awards.length; i++) {
+					str += '<li>' + awards[i].rtx + '(' + awards[i].name + ')</li>';
+				}
+				str += '</ul>';
+				$('#users_lottery').html(str);
+			});
+		};
+
+		/**
+		 * [抽奖动画]
+		 * @return {[type]} [description]
+		 */
+		var startLotteryEffect = function() {
+			$('#title_lottery').addClass('start');
+			var index = 0;
+			var fillData = function() {
+				var str = (CURR_NUM == 1) ? '<div class="lucky">' : '<ul class="list">';
+				if (CURR_NUM == 1) {
+					str += '<img  src="./images/loading.gif" /><h3>' + CURR_DATA.users[index].rtx + '<br>（' + CURR_DATA.users[index].name + '）</h3>';
+					index++;
+					if (index >= CURR_DATA.users.length) {
+						index = 0;
+					}
+				} else {
+					for (var i = 0; i < 50; i++) {
+						str += '<li>' + CURR_DATA.users[index].rtx + '(' + CURR_DATA.users[index].name + ')</li>';
+						index++;
+						if (index >= CURR_DATA.users.length) {
+							index = 0;
+						}
+					}
+				}
+				str += (CURR_NUM == 1) ? '</div>' : '</ul>';
+				$('#users_lottery').html(str);
+				T_CLOCK = setTimeout(fillData, 50);
+			}
+			T_CLOCK = setTimeout(fillData, 50);
+		};
+
+		// 停止动画
+		var stopLotteryEffect = function(obj) {
+			IS_LOADING = 0;
+			clearTimeout(T_CLOCK);
+			var awards = CURR_DATA.luckyMan;
+			var str = (CURR_NUM == 1) ? '<div class="lucky">' : '<ul class="list">';
+			for (var i = 0; i < awards.length; i++) {
+				if (CURR_NUM == 1) {
+					str += '<img width="150" src="../images/lottery/' + awards[i].rtx + '.png"><h3>' + awards[i].rtx + '<br>（' + awards[i].name + '）</h3>';
+				} else {
+					str += '<li>' + awards[i].rtx + '(' + awards[i].name + ')</li>';
+				}
+			}
+			str += (CURR_NUM == 1) ? '</div>' : '</ul>';
+			$('#users_lottery').html(str);
+			$('#title_lottery').removeClass('start');
+			showPrize(CURR_LEVEL);
+		};
+
+		/**
+		 * [统一获取数据的接口]
+		 * @param  {[type]}   url      [访问的url地址]
+		 * @param  {Function} callback [回调方法]
+		 * @return {[type]}            [description]
+		 */
+		var getJSON = function(url, callback) {
+			url += url.indexOf("?") < 0 ? "?" : "&";
+			$.getJSON(url + 'r=' + Math.random(), function(json) {
+				if (json.recode == 0) {
+					callback(json);
+				} else {
+					IS_LOADING = 0;
+					$('#btn_start').removeAttr('disabled');
+					if (json.recode == -1) {
+						myAlert(json.content);
+					} else {
+						myAlert('抽奖接口发生错误');
+					}
+				}
+			}).error(function() {
+				IS_LOADING = 0;
+				$('#btn_start').removeAttr('disabled');
+				myAlert('抽奖接口发生错误');
+			});
+		};
+
+		var myAlert = function(msg) {
+			layer.alert(msg);
+		};
+
+		var page = {
+			init: pageInit
+		};
+		win.page = page;
+
+	}(window));
+	$(function() {
+		window.page.init();
+	});
+</script>
+</body>
+</html>

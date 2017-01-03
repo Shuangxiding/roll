@@ -1,13 +1,15 @@
+/**
+ * 绘制数字并返回每个照片的坐标，用于倒计时动画。
+ */
 import global from './global'
 var canvas = document.createElement('canvas')
-document.body.appendChild(canvas)
 canvas.width=200
 canvas.height=200
 var ctx = canvas.getContext('2d')
 var pList=[];
 var len=200;
-var offX=50,offY=170
-function drawNum(num){
+var offX=0,offY=170
+function drawNum(num,userCnt){
     offX=num>=10?0:50;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.font='200px monospace'
@@ -24,7 +26,7 @@ function drawNum(num){
             }
         }
     }
-    var rate=(list.length-list.length%global.peopleCnt)/global.peopleCnt;
+    var rate=(list.length-list.length%userCnt)/userCnt;
     var flag=1
     for(var i=0;i<list.length;i++){
         if(flag==rate){
