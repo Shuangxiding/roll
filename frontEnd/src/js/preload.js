@@ -12,7 +12,6 @@ export default function preload(callback){
             users[i].index=i
             global.userMap[users[i].rtx]=users[i]
         }
-        console.log(global.users)
         callback();
     })
 }

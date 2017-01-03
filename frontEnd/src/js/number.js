@@ -15,7 +15,7 @@ function drawNum(num,userCnt){
     ctx.font='200px monospace'
     ctx.fillText(num,offX,offY)
     
-    window.imgData=ctx.getImageData(0,0,len,len)
+    // window.imgData=ctx.getImageData(0,0,len,len)
     var i,j
     var list=[]
     pList=[]

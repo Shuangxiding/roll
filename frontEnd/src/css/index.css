@@ -1,7 +1,14 @@
 html, body {
     margin: 0;
     padding: 0;
+    font: 12px/1.5 'Microsoft Yahei';
 }
+/*--定义滚动条样式--*/
+::-webkit-scrollbar {/*滚动条宽度*/width:14px;height:14px;}
+::-webkit-scrollbar-thumb{ background:#bebdbd;border-radius:4px;}
+::-webkit-scrollbar-thumb:hover{ background:#666;opacity:0.5;}
+::-webkit-scrollbar-track-piece:decrement{ background:#f5f5f5;}
+::-webkit-scrollbar-track-piece:increment{ background:#f5f5f5;}
 
 #three_canvas {
     position: absolute;
@@ -12,5 +19,56 @@ html, body {
 #gui_container{
     position: fixed;
     left: 0;
-    bottom: 0;
+    bottom: 25px;
+}
+
+#page_list{width: 100%;text-align: center;position: absolute;height: 600px;left:50%;top:50%;transform:translate(-50%,-50%);-webkit-transform:translate(-50%,-50%);}
+#title{
+    margin: 0 auto;
+    height: 100px;
+    background: url(../img/result-title.png) center center no-repeat;
+}
+#box{position: relative;margin: 0 auto 20px;padding: 30px 50px;width: 850px;height:321px;background: #e8d8ad;border-radius: 5px;overflow: hidden;}
+#prize{float: left;width: 320px;}
+#prize_title{margin: 0 auto 15px;width: 169px;height: 54px;background: url(../img/jp.png) no-repeat;text-indent: -9999px;overflow: hidden;}
+#prize_img{margin: 0 auto;width: 156px;height: 156px;background: url(../img/iphone6s.jpg) center center no-repeat;background-size:contain;background-color:#fff;border-radius: 5px;}
+#prize p{
+    font-size: 24px;
+    color: #1b1b1b;
+    text-align: center;
+}
+#luckyMan{
+    position: absolute;
+    z-index: 100;
+    left: 420px;
+    width: 500px;
+    height: 300px;
+    background: #fff;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+#luckyManList{
+    padding: 10px;
+    list-style: none;
+}
+#luckyManList li{
+    padding: 3px 0;
+    font-size: 18px;
+    color: #1b1b1b;
+    white-space: nowrap;
+    float: left;
+    width: 50%;
+}
+#btn_back{
+    display: inline-block;
+    margin: 0 20px;
+    width: 173px;
+    height: 53px;
+    text-align: center;
+    font: 22px/53px 'Microsoft Yahei';
+    color: #fff;
+    background: #222222;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
 }

@@ -28,7 +28,7 @@ module.exports = (require, ctx) => {
       filename: isProduction ? 'js/[name]-[hash:8].js' : 'js/[name].js?[hash:8]',
       chunkFilename: isProduction ? 'js/[name]-[hash:8].js' : 'js/[name].js?[hash:8]',
       path: ctx._.join(__dirname, '../', ctx.options.server.root),
-      publicPath: './'
+      publicPath: '/'
     },
     resolve: {
       modules: [nodeModulesPath] // important !!
@@ -86,7 +86,7 @@ module.exports = (require, ctx) => {
       }),
       new CopyWebpackPlugin([
         { from: 'src/lib', to: 'lib' },
-        {from: 'src/img',to:'img'}
+        { from: 'src/img', to: 'img' }
       ]),
       isProduction ? new webpack.optimize.UglifyJsPlugin({ // js ugllify
         compress: {

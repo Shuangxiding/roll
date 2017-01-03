@@ -1,5 +1,5 @@
 import {getJSON} from './utils'
-import {controller} from './gui'
+import {controller,rollController} from './gui'
 import {chooseUsers} from './tween'
 var CURR_PRIZE; //当前奖品信息
 var CURR_LEVEL; //当前中奖等级
@@ -35,6 +35,10 @@ var showPrize = function(level) {
         CURR_NUM = data.prelimit;
         controller['当前奖品']=data.cnname;
         controller['奖品剩余']=nowNum;
+        if(nowNum==0){
+            rollController.name('查看获奖名单')
+        }
+        else rollController.name('抽奖')
     });
 };
 var startLottery=function(){
@@ -59,4 +63,4 @@ var showResult = function() {
     });
 };
 
-export {showPrize,CURR_LEVEL,setLevel,CURR_LEFT_NUM,startLottery}
+export {showPrize,CURR_LEVEL,setLevel,CURR_LEFT_NUM,CURR_PRIZE,startLottery}

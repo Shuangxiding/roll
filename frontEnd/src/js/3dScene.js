@@ -34,6 +34,16 @@ function initScene() {
     //init scene
     scene = new THREE.Scene();
 
+
+    //init background
+    var bgGeometry=new THREE.PlaneGeometry(2400,1200);
+    var bgMaterial=new THREE.MeshBasicMaterial({color: 0xeeeeee});
+    bgMaterial.map=new THREE.TextureLoader().load('./images/mybg.jpg')
+    bgObject = new THREE.Mesh(bgGeometry, bgMaterial);
+    bgObject.position.z=-300;
+    scene.add(bgObject)
+}
+var initUsers=function(){
     //init object
     group=new THREE.Group();
     choosedGroup=new THREE.Group();
@@ -53,59 +63,7 @@ function initScene() {
         object.scale.z=0.001;
         group.add(object);
     }
-
-    //init background
-    var bgGeometry=new THREE.PlaneGeometry(2400,1200);
-    var bgMaterial=new THREE.MeshBasicMaterial({color: 0xeeeeee});
-    bgMaterial.map=new THREE.TextureLoader().load('./images/mybg.jpg')
-    bgObject = new THREE.Mesh(bgGeometry, bgMaterial);
-    bgObject.position.z=-300;
-    scene.add(bgObject)
-
-    // if(global.coordsVisible) {
-    //     drawCoords(scene,group);
-    // }
-    // if(global.outlineVisible){
-    //     outline=new THREE.LineSegments(new THREE.EdgesGeometry( geometry ),new THREE.LineBasicMaterial( { color: 0xffd700,lineWidth:2 } ));
-    //     group.add(outline);
-    // }
-    // initControls();
-    window.group=group;
-    window.choosedGroup=choosedGroup;
-    // window.controls=controls;
 }
-// var controls;
-// function initControls() {
-//     controls = new THREE.TrackballControls(camera,renderer.domElement);
-
-//     controls.rotateSpeed = 4;
-//     controls.zoomSpeed = 0.1;
-//     controls.noRotate=true;
-//     controls.noPan=true;
-//     controls.minDistance = 400;
-//     controls.maxDistance = 6000;
-// }
-// var outline;
-// function updateOutline() {
-//     var minD=2000*2000;
-//     var choosed=100;
-//     for(var i=0;i<objects.length;i++){
-//         var v=new THREE.Vector3();
-//         v.setFromMatrixPosition(objects[i].matrixWorld);
-//         if(v.z>0) {
-//             var d = v.x*v.x+v.y*v.y;
-//             if(d<minD){
-//                 minD=d;
-//                 choosed=i;
-//             }
-//         }
-//     }
-//     outline.position.copy(objects[choosed].position);
-//     outline.scale.copy(objects[choosed].scale);
-//     outline.scale.multiplyScalar(1.02);
-//     outline.rotation.copy(objects[choosed].rotation);
-// }
-
 function animate(){
     requestAnimationFrame(animate);
     render();
@@ -114,9 +72,7 @@ function render() {
     if(global.outlineVisible){
         updateOutline();
     }
-    // controls.update();
-    // bgObject.rotation.z+=0.001;
     TWEEN.update();
     renderer.render(scene, camera);
 }
-export {initScene,animate,group,choosedGroup}
+export {initScene,initUsers,animate,group,choosedGroup}

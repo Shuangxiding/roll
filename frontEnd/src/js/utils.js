@@ -11,7 +11,6 @@
 var getJSON = function(url, callback) {
     url += url.indexOf("?") < 0 ? "?" : "&";
     $.getJSON(url + 'r=' + Math.random(), function(json) {
-        console.log(json)
         if (json.recode == 0) {
             callback(json);
         } else {

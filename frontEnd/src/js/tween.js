@@ -4,6 +4,7 @@
 import global from './global'
 import {group,choosedGroup} from './3dScene'
 import {pList,drawNum} from './number'
+import {showResult} from './gui'
 var states ={sphere: [], random: [], init: []}
 var STATE_SPHERE=0,STATE_RANDOM=1,STATE_INIT=2;
 var CURR_STATE=STATE_INIT;
@@ -11,11 +12,7 @@ var animates=[]
 var isPlaying=false;
 var luckyManShowing=false;
 var currentLuckyMan;
-window.states=states
-window.global=global
-// window.currentLuckyMan=currentLuckyMan
 function updateAnimate(){
-    console.log(luckyManShowing)
     if(isPlaying) return;
     else if(animates.length==0){
         return
@@ -29,7 +26,6 @@ function updateAnimate(){
 }
 var clearLuckyMan=function(){
     if(luckyManShowing){
-        console.log(currentLuckyMan)
         for(var user of currentLuckyMan){
             var object=global.userMap[user.rtx].object
             var index=global.userMap[user.rtx].index
@@ -305,7 +301,8 @@ var showUser=function(rtx){
             .onComplete(function(){
                 onAnimateComplete();
                 luckyManShowing=true;
-                currentLuckyMan=[global.userMap[rtx]]
+                currentLuckyMan=[global.userMap[rtx]];
+                showResult([currentLuckyMan]);
             })
             // .chain(new TWEEN.Tween(object.material)
             //     .to({
@@ -370,7 +367,7 @@ var showUsers=function(luckyMan){
         .onComplete(function(){
             luckyManShowing=true;
             currentLuckyMan=luckyMan;
-            window.currentLuckyMan=luckyMan;
+            showResult(luckyMan)
             onAnimateComplete();
         })
         .start();
@@ -393,9 +390,9 @@ var chooseUsers=function(luckyMan){
         updateAnimate();
     }
 }
-function play(){
+var play=function(){
     count();
     animates.push(buildAnimate(toBall))
     updateAnimate()
 }
-export {toRandom,toBall,rotate,count,play,updateStates,chooseUsers,clearLuckyMan};
+export {toRandom,toBall,rotate,count,play,updateStates,chooseUsers,clearLuckyMan,currentLuckyMan};
