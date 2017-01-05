@@ -1,6 +1,6 @@
 import {getJSON} from './utils'
-import {controller,rollController} from './gui'
-import {chooseUsers} from './tween'
+import {controller,rollController,gui} from './gui'
+import {chooseUsers,clearLuckyMan} from './tween'
 var CURR_PRIZE; //当前奖品信息
 var CURR_LEVEL; //当前中奖等级
 var CURR_LEFT_NUM; //当前奖品剩余数量
@@ -49,18 +49,24 @@ var startLottery=function(){
         CURR_NUM = num;
         controller['奖品剩余']=CURR_LEFT_NUM;
         chooseUsers(CURR_DATA.luckyMan)
+        if(CURR_LEFT_NUM==0){
+            rollController.name('查看获奖名单')
+        }
     });
 }
-var showResult = function() {
-    getJSON('./index/show_result?level=' + CURR_LEVEL, function(json) {
-        var awards = json.content;
-        var str = '<ul class="list">';
-        for (var i = 0; i < awards.length; i++) {
-            str += '<li>' + awards[i].rtx + '(' + awards[i].name + ')</li>';
-        }
-        str += '</ul>';
-        $('#users_lottery').html(str);
-    });
-};
+var showResult=function(luckyMan){
+    clearLuckyMan();
+    gui.domElement.style.display='none';
+    $('#prize_title').css('background-image','url(./images/jp'+CURR_LEVEL+'.png)');
+    $('#prize_img').css('background-image','url(./images/prize/'+CURR_PRIZE.name+'.jpg)');
+    $('#goodsName').text(CURR_PRIZE.cnname);
+    $("#goodsNum").text("（" + CURR_LEFT_NUM + "）");
+    var str='';
+    for(var i=0;i<luckyMan.length;i++){
+        str += '<li>' + luckyMan[i].rtx + '(' + luckyMan[i].name + ')</li>';
+    }
+    $('#luckyManList').html(str);
+    $('#page_list').show(500);
+}
 
-export {showPrize,CURR_LEVEL,setLevel,CURR_LEFT_NUM,CURR_PRIZE,startLottery}
+export {showPrize,CURR_LEVEL,setLevel,CURR_LEFT_NUM,CURR_PRIZE,startLottery,showResult}

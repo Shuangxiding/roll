@@ -25,3 +25,7 @@
 如对前端代码(`./frontEnd`下的代码)做修改，需执行`fbi b`进行编译
 
 开发时也可使用`fbi w`
+
+# .gitignore
+
+users.sql文件与lottery目录下的图片涉及敏感信息，因此不加入git版本控制。

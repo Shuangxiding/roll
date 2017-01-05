@@ -7,10 +7,11 @@ import global from './global'
 import preload from './preload'
 import {initScene,animate,initUsers} from './3dScene'
 import {updateStates,clearLuckyMan} from './tween'
-import {guiInit} from './gui'
+import {guiInit,gui} from './gui'
 var pageBind=function(){
-    $('btn_back').on('click',function(){
+    $('#btn_back').on('click',function(){
         $('#page_list').hide();
+        gui.domElement.style.display='block';
         clearLuckyMan();
     })
 }
@@ -21,6 +22,7 @@ function threeStart() {
         updateStates();
         guiInit();
         animate();
+        pageBind();
     });
 }
 window.onload = threeStart();

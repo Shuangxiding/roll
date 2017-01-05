@@ -4,7 +4,7 @@
 import global from './global'
 import {group,choosedGroup} from './3dScene'
 import {pList,drawNum} from './number'
-import {showResult} from './gui'
+import {showResult} from './roll'
 var states ={sphere: [], random: [], init: []}
 var STATE_SPHERE=0,STATE_RANDOM=1,STATE_INIT=2;
 var CURR_STATE=STATE_INIT;
@@ -289,7 +289,7 @@ var showUser=function(rtx){
     choosedGroup.add(object)
     new TWEEN.Tween(object.position)
             .to({
-                x:0,y:200,z:200
+                x:0,y:200,z:201
                 }, 2000)
             .easing(TWEEN.Easing.Exponential.InOut)
             .start();
@@ -302,7 +302,7 @@ var showUser=function(rtx){
                 onAnimateComplete();
                 luckyManShowing=true;
                 currentLuckyMan=[global.userMap[rtx]];
-                showResult([currentLuckyMan]);
+                showResult(currentLuckyMan);
             })
             // .chain(new TWEEN.Tween(object.material)
             //     .to({
@@ -342,7 +342,7 @@ var showUsers=function(luckyMan){
         choosedGroup.add(object)
         new TWEEN.Tween(object.position)
             .to({
-                x:-200+x*step,y:200-y*step,z:200
+                x:-200+x*step,y:200-y*step,z:201
                 }, time)
             .easing(TWEEN.Easing.Exponential.InOut)
             .start();
@@ -391,7 +391,7 @@ var chooseUsers=function(luckyMan){
     }
 }
 var play=function(){
-    count();
+    // count();
     animates.push(buildAnimate(toBall))
     updateAnimate()
 }
