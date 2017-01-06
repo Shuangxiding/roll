@@ -1,5 +1,7 @@
 /**
  * 绘制数字并返回每个照片的坐标，用于倒计时动画。
+ * 倒计时动画已取消。--2017/1/6 javanli
+ * 以目前人数来看，对每个头像单独应用补间动画会出现卡顿，估计卡顿主要来自tween.js而不是three.js。
  */
 import global from './global'
 var canvas = document.createElement('canvas')

@@ -1,5 +1,5 @@
 /**
- * 全局变量与配置属性
+ * 全局变量与配置
  */
 export default {
     coordsVisible:false,//显示坐标轴

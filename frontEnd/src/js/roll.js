@@ -1,6 +1,9 @@
+/**
+ * 抽奖逻辑
+ */
 import {getJSON} from './utils'
 import {controller,rollController,gui} from './gui'
-import {chooseUsers,clearLuckyMan} from './tween'
+import {chooseUsers,clearLuckyMan,isPlaying} from './tween'
 var CURR_PRIZE; //当前奖品信息
 var CURR_LEVEL; //当前中奖等级
 var CURR_LEFT_NUM; //当前奖品剩余数量
@@ -15,7 +18,10 @@ var getAllLevelLeft = function() {
 
     });
 };
-
+/**
+ * 刷新奖品信息
+ * @param  {} level 奖项等级
+ */
 var showPrize = function(level) {
     console.log('level:'+level+' CURR_LEVEL:'+CURR_LEVEL)
     CURR_PRIZE = null;
@@ -41,6 +47,10 @@ var showPrize = function(level) {
         else rollController.name('抽奖')
     });
 };
+
+/**
+ * 抽奖
+ */
 var startLottery=function(){
     getJSON('./index/start_Lottery?priid=' + CURR_PRIZE.id, function(json) {
         CURR_DATA = json.content;
@@ -54,6 +64,10 @@ var startLottery=function(){
         }
     });
 }
+
+/**
+ * 展示结果
+ */
 var showResult=function(luckyMan){
     clearLuckyMan();
     gui.domElement.style.display='none';

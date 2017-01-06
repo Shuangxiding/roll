@@ -1,10 +1,14 @@
 /**
  * 控制面板
  */
-import {toRandom,toBall,rotate,count,play,chooseUser,clearLuckyMan,currentLuckyMan} from './tween'
+import {toRandom,toBall,rotate,count,play,chooseUser,clearLuckyMan,currentLuckyMan,isPlaying} from './tween'
 import {getJSON,myAlert} from './utils'
 import {CURR_LEVEL,setLevel,showPrize,CURR_LEFT_NUM,CURR_PRIZE,startLottery,showResult} from './roll'
 var roll=function(){
+    if(isPlaying){
+        layer.msg('正在抽奖，请稍等')
+        return
+    }
     if(CURR_LEVEL==null||CURR_LEVEL==-1){
         myAlert('请选择奖品')
     }
@@ -23,6 +27,9 @@ var levelMap={
 var controller;
 var rollController;
 var gui;
+/**
+ * 初始化用户界面
+ */
 var guiInit=function(){
     controller={
         '准备':play,

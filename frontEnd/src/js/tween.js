@@ -5,13 +5,18 @@ import global from './global'
 import {group,choosedGroup} from './3dScene'
 import {pList,drawNum} from './number'
 import {showResult} from './roll'
-var states ={sphere: [], random: [], init: []}
+var states ={sphere: [], random: [], init: []}//不同状态（球，随机，点）下每个头像的状态（位置，大小）
 var STATE_SPHERE=0,STATE_RANDOM=1,STATE_INIT=2;
-var CURR_STATE=STATE_INIT;
+var CURR_STATE=STATE_INIT;//当前状态
+var isPlaying=false;//当前状态
+var luckyManShowing=false;//当前状态
+var currentLuckyMan;//当前被抽中的人
+
+/**
+ * 这里是一个简单的动画队列。
+ * 把函数和参数push进队列中，每次动画执行完时检查队列，播放下一个动画
+ */
 var animates=[]
-var isPlaying=false;
-var luckyManShowing=false;
-var currentLuckyMan;
 function updateAnimate(){
     if(isPlaying) return;
     else if(animates.length==0){
@@ -21,22 +26,6 @@ function updateAnimate(){
         var nextAnimate=animates.shift();
         isPlaying=true;
         nextAnimate.animateFunc(...nextAnimate.args);
-    }
-    clearLuckyMan();
-}
-var clearLuckyMan=function(){
-    if(luckyManShowing){
-        for(var user of currentLuckyMan){
-            var object=global.userMap[user.rtx].object
-            var index=global.userMap[user.rtx].index
-            // object.material.opacity=0;
-            choosedGroup.remove(object)
-            group.add(object)
-            object.scale.set(1,1,1)
-            object.position.copy(states.sphere[index].position)
-            object.rotation.copy(states.sphere[index].rotation)
-        }
-        luckyManShowing=false;
     }
 }
 function buildAnimate(animateFunc,args){
@@ -52,6 +41,28 @@ function onAnimateComplete(){
     isPlaying=false;
     updateAnimate();
 }
+/**
+ * 将选出的中奖者放回球里
+ */
+var clearLuckyMan=function(){
+    if(luckyManShowing){
+        for(var user of currentLuckyMan){
+            var object=global.userMap[user.rtx].object
+            var index=global.userMap[user.rtx].index
+            // object.material.opacity=0;
+            choosedGroup.remove(object)
+            group.add(object)
+            object.scale.set(1,1,1)
+            object.position.copy(states.sphere[index].position)
+            object.rotation.copy(states.sphere[index].rotation)
+        }
+        luckyManShowing=false;
+    }
+}
+
+/**
+ * 生成初始状态下每个坐标
+ */
 var updateInit=function(){
     states.init=[]
     var object = new THREE.Object3D();
@@ -60,6 +71,12 @@ var updateInit=function(){
         states.init.push(object);
     }
 }
+/**
+ * 生成球形下每个头像的坐标与大小
+ * 这里采用了球面均匀分布的近似算法，效果较好。
+ * 球面均匀分布是一个NP hard问题，不存在线性时间解法。
+ * 另外用遗传算法解决这个问题也是很有意思的：球面上每个点有一个斥力，根据受力移动每个点，迭代下去直到稳定状态。
+ */
 var updateSphere=function(){
     states.sphere=[]
     var vector = new THREE.Vector3();
@@ -190,6 +207,9 @@ function toRandom(time,isDelay){
     }
     CURR_STATE=STATE_RANDOM;
 }
+/**
+ * 倒计时
+ */
 function count(){
     for(var i=3;i>=0;i--){
         animates.push(buildAnimate(toRandom,[1000]))
@@ -258,6 +278,9 @@ function rotateAroundWorldAxis(object, axis, radians) {
     object.matrix = rotWorldMatrix;
     object.rotation.setFromRotationMatrix(object.matrix);
 }
+/**
+ * 旋转到指定位置
+ */
 var rotateToUser=function(rtx){
     var object=new THREE.Object3D();
     var theta=global.userMap[rtx].theta;
@@ -276,11 +299,15 @@ var rotateToUser=function(rtx){
             .onComplete(onAnimateComplete)
             .start();
 }
+/**
+ * 让一个头像从当前位置飞出
+ */
 var showUser=function(rtx){
     console.log(rtx)
     var object=global.userMap[rtx].object;
     object.updateMatrixWorld();
     object.material.transparent=true
+    //物体坐标与世界坐标的转换
     var vector = new THREE.Vector3();
     vector.setFromMatrixPosition( object.matrixWorld );
     object.position.copy(vector)
@@ -304,17 +331,6 @@ var showUser=function(rtx){
                 currentLuckyMan=[global.userMap[rtx]];
                 showResult(currentLuckyMan);
             })
-            // .chain(new TWEEN.Tween(object.material)
-            //     .to({
-            //         opacity:0
-            //         }, 2000)
-            //     .easing(TWEEN.Easing.Exponential.InOut)
-            //     .onComplete(function(){
-            //         // group.add(object)
-            //         // choosedGroup.remove(object)
-            //         onAnimateComplete();
-            //     })
-            // )
             .start();
     updateStates();
 }
@@ -343,18 +359,16 @@ var showUsers=function(luckyMan){
         new TWEEN.Tween(object.position)
             .to({
                 x:-200+x*step,y:200-y*step,z:201
-                }, time)
+                }, 2000)
             .easing(TWEEN.Easing.Exponential.InOut)
             .start();
         new TWEEN.Tween(object.scale)
             .to({
                 x:scale,y:scale,z:scale
-                }, time)
+                }, 2000)
             .easing(TWEEN.Easing.Exponential.InOut)
-            .onComplete(function(){
-                showMan(i+1)
-            })
             .start();
+        setTimeout(showMan,time,i+1)
     }
     setTimeout(showMan,1000,0)
     new TWEEN.Tween(group.rotation)
@@ -380,6 +394,9 @@ var chooseUser=function(rtx){
     animates.push(buildAnimate(showUser,[rtx]))
     updateAnimate();
 }
+/**
+ * 抽奖抽中某人
+ */
 var chooseUsers=function(luckyMan){
     if(luckyMan.length==1){
         chooseUser(luckyMan[0].rtx)
@@ -390,9 +407,12 @@ var chooseUsers=function(luckyMan){
         updateAnimate();
     }
 }
+/**
+ * 准备阶段的动画
+ */
 var play=function(){
     // count();
     animates.push(buildAnimate(toBall))
     updateAnimate()
 }
-export {toRandom,toBall,rotate,count,play,updateStates,chooseUsers,clearLuckyMan,currentLuckyMan};
+export {toRandom,toBall,rotate,count,play,updateStates,chooseUsers,clearLuckyMan,currentLuckyMan,isPlaying};
